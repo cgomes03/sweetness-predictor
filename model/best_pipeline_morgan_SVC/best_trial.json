@@ -1,0 +1,13 @@
+{
+  "trial": 22,
+  "valid_value": 0.8148967551622419,
+  "metric": "f1_score",
+  "params": {
+    "featurizer": "morgan",
+    "morgan_radius": 1,
+    "morgan_bits": 2048,
+    "model": "SVC",
+    "model__kernel": "rbf",
+    "model__C": 9.3646499559382
+  }
+}

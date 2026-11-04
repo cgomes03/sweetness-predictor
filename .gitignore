@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# deepmol writes these wherever it is imported from
+deepmol.log*
+
+# AutoML scratch output, if you run a search in this checkout
+checkpoints/
+*.db
+
+.DS_Store
+.vscode/
+.idea/

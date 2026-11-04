@@ -1,0 +1,5 @@
+# The trained SVC is 233 MB, over GitHub's 100 MB per-file limit, so it needs
+# Git LFS. If you would rather not use LFS, delete this file, add
+# model/best_pipeline_morgan_SVC/model/model.pkl to .gitignore, and attach the
+# model to a GitHub Release instead -- see "The model file" in README.md.
+*.pkl filter=lfs diff=lfs merge=lfs -text

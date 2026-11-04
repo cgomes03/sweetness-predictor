@@ -1,0 +1,8 @@
+{
+  "train": "d3ff5f28eba04a71",
+  "valid": "b0614d287c816ba3",
+  "test": "480607407362a16d",
+  "train_size": 44767,
+  "valid_size": 9592,
+  "test_size": 9594
+}

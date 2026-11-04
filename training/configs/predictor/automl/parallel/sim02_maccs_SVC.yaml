@@ -1,0 +1,29 @@
+# Parallel run of ONE pair: similarity split 0.2 (atom_pair 2048) on data/sweetners26/sweet26_clean.csv
+# svc_fast: SVC = CalibratedClassifierCV(SVC, sigmoid, cv=5, n_jobs=5) instead of SVC(probability=True).
+automl:
+  classification_threshold: 0.5
+  featurizer_candidates:
+  - maccs
+  metric: f1_score
+  model_candidates:
+  - SVC
+  n_trials: 100
+  save_top_n: 3
+  seed: 42
+  study_name: sweet_automl_sim02_par_maccs_SVC
+  trial_timeout: 1800
+  svc_fast: true
+cpu: 50
+output_root: checkpoints/20261029_sim02_clean
+dataset_path: "data/sweet26_clean.csv"
+id_field: inchikey
+label_field: sweet
+smiles_field: canon_smiles
+split:
+  frac_test: 0.15
+  frac_train: 0.7
+  frac_valid: 0.15
+  homogenous_threshold: 0.2
+  type: similarity
+  fingerprint_type: atom_pair
+standardizer: chembl

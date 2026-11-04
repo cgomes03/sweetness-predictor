@@ -1,0 +1,1 @@
+{"0": {"name": "featurizer", "type": "transformer", "is_fitted": true, "path": "featurizer.pkl"}, "1": {"name": "model", "type": "predictor", "model_type": "sklearn", "is_fitted": true, "path": "model"}}

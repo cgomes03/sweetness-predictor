@@ -1,0 +1,25 @@
+cpu: 50
+dataset_path: "../../../../src/molevogen/molevo/predictiveModels/sweetEnsemble/DeepSweet/resources/data/merged_foodb_gold_sweetnessv3_filtered.csv"
+smiles_field: "canon_smiles"
+id_field: "inchikey"
+label_field: "sweet"
+standardizer: "chembl"
+
+split:
+  type: "similarity"
+  frac_train: 0.7
+  frac_valid: 0.15
+  frac_test: 0.15
+  homogenous_threshold: 0.3
+
+automl:
+  featurizer_candidates: ["morgan", "maccs", "2d_descriptors", "atom_pair"]
+  model_candidates: ["RandomForestClassifier", "SVC", "LogisticRegression"]
+  metric: "f1_score"
+  n_trials: 100
+  save_top_n: 3
+  trial_timeout: 1800
+  study_name: "sweet_automl_similarity03_study"
+  seed: 42
+
+  classification_threshold: 0.5
