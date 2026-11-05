@@ -21,7 +21,9 @@ can be inspected, reused and cited independently of that framework.
 from sweetness_predictor import SweetnessPredictor
 
 p = SweetnessPredictor()
-p.calculate_scores(["OC[C@H]1O[C@](CO)(O[C@H]2O[C@H](CO)[C@@H](O)[C@H](O)[C@H]2O)[C@@H](O)[C@@H]1O"])
+p.calculate_scores(
+    ["OC[C@H]1O[C@](CO)(O[C@H]2O[C@H](CO)[C@@H](O)[C@H](O)[C@H]2O)[C@@H](O)[C@@H]1O"]
+)
 # array([0.797])
 ```
 
@@ -41,10 +43,6 @@ and Optuna.
 | Selection metric      | F1 score on the validation set          |
 | Search                | Optuna, 60 trials per featuriser/model pair; best was trial 22 |
 
-Two distinct fingerprints are involved and should not be conflated. The model
-featurises molecules with Morgan fingerprints. The similarity-based partition
-of the dataset was computed with atom-pair fingerprints, which affects only how
-molecules were allocated to the training, validation and test sets.
 
 ## Performance
 
@@ -117,9 +115,12 @@ training/
   data_prep/01_dedup.py         constructs the curated dataset from merged sources
   automl/                       search pipeline, search space and launchers
   configs/                      one configuration per featuriser/model pair
-  sanitycheck/                  leakage and partition integrity checks
 ```
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 ## Data
 
 `data/sweet26_clean.csv` contains 65,255 unique molecules, of which 11,121

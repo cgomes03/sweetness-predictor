@@ -1,25 +1,38 @@
+
 cpu: 50
-dataset_path: "../../../../src/molevogen/molevo/predictiveModels/sweetEnsemble/DeepSweet/resources/data/merged_foodb_gold_sweetnessv3_filtered.csv"
-smiles_field: "canon_smiles"
-id_field: "inchikey"
-label_field: "sweet"
-standardizer: "chembl"
+
+dataset_path: "data/sweet26_clean.csv"
+smiles_field: canon_smiles
+id_field: inchikey
+label_field: sweet
+standardizer: chembl
+
+# A separate output_root from the parallel batch, so an accidental run cannot
+# overwrite the published checkpoints. Point this at
+# checkpoints/20261029_sim02_clean instead to resume that batch: the pipeline
+# skips any pair it finds already completed there.
+output_root: checkpoints/sim02_clean_all
 
 split:
-  type: "similarity"
+  type: similarity
   frac_train: 0.7
   frac_valid: 0.15
   frac_test: 0.15
   homogenous_threshold: 0.2
+  # Fingerprint used to group molecules for the split only. The models
+  # featurise separately, according to featurizer_candidates below.
+  fingerprint_type: atom_pair
 
 automl:
-  featurizer_candidates: ["morgan", "maccs", "2d_descriptors", "atom_pair"]
-  model_candidates: ["RandomForestClassifier", "SVC", "LogisticRegression"]
-  metric: "f1_score"
-  n_trials: 100
+  featurizer_candidates: ["morgan", "maccs", "atom_pair"]
+  model_candidates: ["RandomForestClassifier", "SVC", "LogisticRegression", "XGBClassifier"]
+  metric: f1_score
+  n_trials: 100          # per featuriser/model pair, not in total
   save_top_n: 3
   trial_timeout: 1800
-  study_name: "sweet_automl_similarity02_study"
+  study_name: sweet_automl_sim02_all
   seed: 42
-
   classification_threshold: 0.5
+  # SVC becomes CalibratedClassifierCV(SVC, sigmoid, cv=5, n_jobs=5) rather
+  # than SVC(probability=True), which is far cheaper to fit on this dataset.
+  svc_fast: true
