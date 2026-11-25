@@ -29,8 +29,8 @@ p.calculate_scores(
 
 The model is a support vector classifier with a radial basis function kernel
 applied to Morgan fingerprints. It was selected by an automated search over
-featuriser and model families, conducted with [DeepMol](https://github.com/BioSystemsUM/DeepMol)
-and Optuna.
+featuriser and model families, conducted with
+[DeepMol](https://github.com/BioSystemsUM/DeepMol) and Optuna.
 
 ## Model
 
@@ -43,11 +43,52 @@ and Optuna.
 | Selection metric      | F1 score on the validation set          |
 | Search                | Optuna, 60 trials per featuriser/model pair; best was trial 22 |
 
+Stereochemistry is not encoded: fingerprints are computed with chirality
+disabled, so stereoisomers receive identical scores. This is deliberate, and
+follows from the generative model the predictor is paired with, whose SMILES
+vocabulary contains no stereochemical tokens.
+
+## Data
+
+`data/sweet26_clean.csv` holds the curated dataset, assembled from three
+sources:
+
+| Source | Role |
+| ------ | ---- |
+| [ChemTastesDB](https://doi.org/10.1016/j.fochms.2022.100090) | Curated tastants with experimentally confirmed labels; the dominant source of sweet compounds |
+| [FooDB](https://foodb.ca/) | Food compounds with flavour annotations; a compound is labelled sweet if a flavour descriptor contains "sweet" |
+| [DeepSweet](https://github.com/BioSystemsUM/DeepSweet) compilation | Earlier compilation over several taste and flavour databases, retained for comparability |
+
+Molecular identity was resolved by full InChIKey computed with RDKit.
+Compounds carrying conflicting labels across sources were removed, as were
+compounds labelled non-sweet only by the FooDB extraction.
+
+**Label-quality caveat.** Most negative labels originate from FooDB, directly
+or through the inherited compilation, and reflect the absence of a sweet
+descriptor rather than experimental evidence of a non-sweet taste. Some
+compounds labelled non-sweet may be sweet but unannotated, so a fraction of
+the apparent false positives are not necessarily errors. Precision should be
+read with this in mind.
+
+### Splits
+
+`data/splits/` holds the training, validation, and test partitions. They were
+produced by DeepMol's `SimilaritySplitter` over atom-pair fingerprints, which
+groups structurally similar molecules and keeps them on the same side of the
+split, so that the held-out sets sit in regions of chemical space the model
+has not seen. A random split would place near-identical molecules in both
+training and test sets and give an optimistic estimate of performance on
+unfamiliar chemistry, which is the regime this predictor operates in when
+scoring generated molecules.
+
+The splitter's `homogenous_threshold` is compared against Tanimoto
+*similarity* and the procedure is a greedy heuristic: it gives no guarantee
+on the maximum similarity between any training and test pair. The partition
+distributed here uses a threshold of 0.2.
 
 ## Performance
 
-Decision threshold 0.5. Validation and test sets were held out under a
-similarity-based partition, described under [Data](#data).
+Decision threshold 0.5, on the splits described above.
 
 | Metric    | Train  | Validation | Test   |
 | --------- | ------ | ---------- | ------ |
@@ -56,6 +97,19 @@ similarity-based partition, described under [Data](#data).
 | Recall    | 0.9880 | 0.7275     | 0.7487 |
 | MCC       | 0.9770 | 0.7927     | 0.8069 |
 
+Only the test column is an unbiased estimate. The validation set was the
+selection signal driving the Optuna search, so validation metrics are
+optimistic by construction.
+
+## Scope
+
+The model is a fingerprint-based QSAR classifier. It reads substructure
+presence, not physicochemical properties, and says nothing about toxicity,
+safety, solubility, metabolic fate or sweetness intensity relative to sucrose.
+It estimates one thing: the probability that a structure belongs to the sweet
+class as labelled in the dataset above. It is a research tool for ranking and
+filtering candidate structures, not a basis for any claim about a compound's
+fitness for consumption.
 
 ## Installation
 
@@ -82,22 +136,7 @@ imported, `SweetnessPredictor` launches a persistent worker process in the
 other environment obtains identical scores. Importing DeepMol costs
 approximately twelve seconds, incurred once per run rather than once per call.
 
-## Obtaining the model weights
 
-`model/best_pipeline_morgan_SVC/model/model.pkl` is 233 MB, since a support
-vector classifier with an RBF kernel retains its support vectors. This exceeds
-GitHub's 100 MB limit for files in a repository, so the file is distributed as a
-release asset rather than tracked in version control.
-
-Download it into place:
-
-```bash
-gh release download v1.0 --pattern model.pkl \
-    --dir model/best_pipeline_morgan_SVC/model/
-```
-
-Alternatively, set the `SWEETNESS_MODEL_DIR` environment variable to the
-directory holding `best_pipeline_morgan_SVC/`, wherever that is kept.
 
 ## Repository layout
 
@@ -109,7 +148,7 @@ model/
   best_metrics_morgan_SVC.csv   the performance table above
   best_pipeline_morgan_SVC/     featuriser, pipeline definition and classifier
 data/
-  sweet26_clean.csv             the curated dataset, 65,255 molecules
+  sweet26_clean.csv             the curated dataset
   splits/                       training, validation and test partitions
 training/
   data_prep/01_dedup.py         constructs the curated dataset from merged sources
@@ -117,70 +156,5 @@ training/
   configs/                      one configuration per featuriser/model pair
 ```
 
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
-## Data
-
-`data/sweet26_clean.csv` contains 65,255 unique molecules, of which 11,121
-(17.0 per cent) are labelled sweet. It was assembled from three sources and
-deduplicated:
-
-| Source                 | Molecules |
-| ---------------------- | --------- |
-| Sweetness dataset v3.1 | 58,052    |
-| FooDB                  | 52,748    |
-| Gold taste dataset     | 12,111    |
-
-The saved partitions contain 63,953 of these molecules at 15.8 per cent sweet;
-ChEMBL standardisation discards compounds it cannot process.
-
-| Partition  | Molecules | Sweet | Proportion sweet |
-| ---------- | --------- | ----- | ---------------- |
-| Training   | 44,767    | 7,092 | 15.8 per cent    |
-| Validation | 9,592     | 1,519 | 15.8 per cent    |
-| Test       | 9,594     | 1,520 | 15.8 per cent    |
-
-The partition is similarity-based, not random. Molecules are grouped by
-structural similarity, using atom-pair fingerprints with a homogeneity
-threshold of 0.2, before being divided in proportions of 70, 15 and 15 per cent,
-so that structurally near-identical compounds cannot be separated across
-partitions. A random partition of this dataset yields considerably higher
-scores that do not reflect performance on novel chemistry, which is the regime
-in which a generative model operates.
-
-
-## Reproducing the model selection
-
-With the `deepmol` environment active, from the repository root:
-
-```bash
-python training/automl/automl_pipeline.py \
-    --config training/configs/predictor/automl/parallel/sim02_morgan_SVC.yaml
-```
-
-`training/automl/launch_parallel.sh` runs every featuriser and model
-combination, and `merge_parallel_results.py` consolidates the outcomes into a
-single table. The search is computationally demanding: the original run used
-50 CPU cores with a timeout of 30 minutes per trial, and a fixed random seed of
-42.
-
-## Self-test
-
-```bash
-python sweetness_predictor.py            # scores a set of reference molecules
-python sweetness_predictor.py --test-set # recomputes the performance table
-```
-
-The first command is expected to produce:
-
-```
-sucrose              P(sweet) = 0.797
-aspartame            P(sweet) = 0.808
-saccharin            P(sweet) = 0.036
-caffeine (bitter)    P(sweet) = 0.037
-ethanol              P(sweet) = 0.518
-invalid SMILES       P(sweet) = 0.000
-```
 
